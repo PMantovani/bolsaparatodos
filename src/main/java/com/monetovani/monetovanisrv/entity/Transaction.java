@@ -14,15 +14,31 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private float value;
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private User user;
 
-    @Column
     private String title;
-    private Long user;
+    private boolean isInvisible; // If it should appear in transaction feed. (i.e stock market changes shouldn't be shown)
+    private boolean isAccountable; // If this transaction should be accounted in earnings/expenses. (i.e initial account balances)
 
-    private String fromAccount;
-    private String toAccount;
-    private String category;
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private Account fromAccount; // fromAccount null means it's an income
+
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private Account toAccount; // toAccount and toPosition null means it's an outcome
+
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private Position toPosition;
+
+    @ManyToOne
+    @JoinColumn(name = "id")
+    private Category category;
+
+    private float value;
     private LocalDateTime transactionDate;
     private LocalDateTime creationDate;
     private LocalDateTime lastModifiedDate;

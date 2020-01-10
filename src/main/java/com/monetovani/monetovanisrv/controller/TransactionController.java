@@ -4,7 +4,6 @@ import com.monetovani.monetovanisrv.controller.exceptionhandler.TransactionNotFo
 import com.monetovani.monetovanisrv.entity.Transaction;
 import com.monetovani.monetovanisrv.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
