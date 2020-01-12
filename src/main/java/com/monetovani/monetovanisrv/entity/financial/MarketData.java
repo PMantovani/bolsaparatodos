@@ -1,11 +1,13 @@
-package com.monetovani.monetovanisrv.entity;
+package com.monetovani.monetovanisrv.entity.financial;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
+@Entity
 public class MarketData {
 
     @Id
@@ -13,8 +15,9 @@ public class MarketData {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id")
     private Asset asset;
+
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime quotationDatetime;
     private float closeValue;
 }

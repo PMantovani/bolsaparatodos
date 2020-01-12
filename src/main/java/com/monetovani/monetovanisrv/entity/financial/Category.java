@@ -1,18 +1,20 @@
-package com.monetovani.monetovanisrv.entity;
+package com.monetovani.monetovanisrv.entity.financial;
+
+import lombok.Data;
 
 import javax.persistence.*;
 
+@Data
+@Entity
 class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "id")
     private Category parent;
 
     private String name;
