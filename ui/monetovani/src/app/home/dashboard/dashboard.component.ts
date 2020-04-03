@@ -6,6 +6,8 @@ import { BrlCurrencyPipe } from 'src/app/pipes/brl-currency.pipe';
 import * as moment from 'moment';
 import { HttpParams } from '@angular/common/http';
 import { MarketData } from 'src/app/model/MarketData';
+import { FormControl } from '@angular/forms';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-dashboard',
@@ -57,12 +59,18 @@ export class DashboardComponent implements OnInit {
     }
   };
   public chart: Chart;
+  private startDateFormControl: FormControl;
+  private endDateFormControl: FormControl;
 
   constructor(
     private api: ApiClientService,
     private datePipe: DatePipe,
     private currencyPipe: BrlCurrencyPipe,
     @Inject(DOCUMENT) private document: Document) {
+      const previousMonth = new Date();
+      previousMonth.setMonth(previousMonth.getMonth() - 1);
+      this.startDateFormControl = new FormControl(previousMonth);
+      this.endDateFormControl = new FormControl(new Date());
   }
 
   ngOnInit() {
@@ -90,9 +98,13 @@ export class DashboardComponent implements OnInit {
       }
     });
 
+    this.retrieveMarketData();
+  }
+
+  retrieveMarketData() {
     const queryParams = new HttpParams()
-      .set('startDate', '2010-01-01')
-      .set('endDate', '2020-04-03');
+      .set('startDate', this.startDateFormControl.value.toISOString().substring(0, 10))
+      .set('endDate', this.endDateFormControl.value.toISOString().substring(0, 10));
 
     this.api.get('marketdata/SAPR4', queryParams).subscribe((marketData: MarketData[]) => {
       this.chart.data.datasets[0].data = marketData.map(i => i.adjustedCloseValue);
@@ -109,5 +121,9 @@ export class DashboardComponent implements OnInit {
 
   formatTooltipLabel(item: ChartTooltipItem): string {
     return 'Preço de fechamento ajustado: ' + this.currencyPipe.transform(item.value);
+  }
+
+  dateChanged(event: MatDatepickerInputEvent<Date>) {
+    this.retrieveMarketData();
   }
 }

@@ -68,16 +68,18 @@ public class MarketDataService {
 
     private List<MarketDataModelWithDate> adjustClosingValue(List<MarketData> marketDataList) {
         float accumulatedSplitFactor = 1;
-        float accumulatedDividends = 0;
+        float accumulatedDividendPerCurrencyUnit = 0;
         List<MarketDataModelWithDate> mdModel = new ArrayList<>();
         for (MarketData md: marketDataList) {
             MarketDataModelWithDate element = new MarketDataModelWithDate();
             BeanUtils.copyProperties(md, element);
             element.setCode(md.getId().getAsset().getCode());
             element.setDate(md.getId().getEventDate());
-            element.setAdjustedCloseValue((element.getCloseValue() * accumulatedSplitFactor) + accumulatedDividends);
+            element.setAdjustedCloseValue((element.getCloseValue() * accumulatedSplitFactor * (1 - accumulatedDividendPerCurrencyUnit)));
+
+            accumulatedDividendPerCurrencyUnit += element.getDividendPerShare() / element.getOpenValue();
+
             accumulatedSplitFactor *= element.getSplitFactor();
-            accumulatedDividends += element.getDividendPerShare();
             mdModel.add(element);
         }
         return mdModel;
