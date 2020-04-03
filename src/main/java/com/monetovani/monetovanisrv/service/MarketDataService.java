@@ -2,6 +2,8 @@ package com.monetovani.monetovanisrv.service;
 
 import com.monetovani.monetovanisrv.entity.financial.MarketData;
 import com.monetovani.monetovanisrv.entity.financial.MarketQuotation;
+import com.monetovani.monetovanisrv.model.MarketDataByDate;
+import com.monetovani.monetovanisrv.model.MarketDataModel;
 import com.monetovani.monetovanisrv.repository.MarketDataRepository;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.AlphaVantageQuotationService;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.B3QuotationService;
@@ -29,10 +31,30 @@ public class MarketDataService {
     @Autowired private YahooFinanceQuotationService yahooFinanceQuotationService;
     @Autowired private B3QuotationService b3QuotationService;
 
-    public List<MarketData> getQuotationInPeriod(Collection<String> assetCodes, LocalDate startDate, LocalDate endDate) {
-        List<MarketData> marketData = new ArrayList<>();
-        assetCodes.forEach(asset -> marketData.addAll(this.getQuotationInPeriod(asset, startDate, endDate)));
-        return marketData;
+    public List<MarketDataByDate> getQuotationInPeriod(List<String> assetCodes, LocalDate startDate, LocalDate endDate) {
+        List<MarketData> marketData = this.marketDataRepository
+                .findByIdAssetCodeInAndIdEventDateBetweenOrderByIdEventDateDesc(assetCodes, startDate, endDate);
+
+        List<MarketDataByDate> result = new ArrayList<>();
+        MarketDataByDate mdInDate = null;
+        for (MarketData md: marketData) {
+            if (mdInDate == null || !mdInDate.getDate().equals(md.getId().getEventDate())) {
+                if (mdInDate != null) {
+                    result.add(mdInDate);
+                }
+                mdInDate = new MarketDataByDate();
+                mdInDate.setDate(md.getId().getEventDate());
+            }
+
+            List<MarketDataModel> list = mdInDate.getMarketData();
+            if (list == null) {
+                list = new ArrayList<>();
+                mdInDate.setMarketData(list);
+            }
+            list.add(new MarketDataModel(md.getId().getAsset().getCode(), md.getOpenValue(), md.getMinValue(),
+                    md.getMaxValue(), md.getCloseValue(), md.getSplitFactor(), md.getDividendPerShare()));
+        }
+        return result;
     }
 
     public List<MarketData> getQuotationInPeriod(String assetCode, LocalDate startDate, LocalDate endDate) {

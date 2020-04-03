@@ -1,6 +1,7 @@
 package com.monetovani.monetovanisrv.controller;
 
 import com.monetovani.monetovanisrv.entity.financial.MarketData;
+import com.monetovani.monetovanisrv.model.MarketDataByDate;
 import com.monetovani.monetovanisrv.model.MarketDataCreationResponse;
 import com.monetovani.monetovanisrv.service.MarketDataService;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.B3QuotationService;
@@ -10,7 +11,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/marketdata")
@@ -28,6 +32,17 @@ public class MarketDataController {
         startDate = startDate == null ? LocalDate.now().minusMonths(1) : startDate;
         endDate = endDate == null ? LocalDate.now() : endDate;
         return service.getQuotationInPeriod(assetCode, startDate, endDate);
+    }
+
+    @GetMapping
+    public List<MarketDataByDate> getMarketDataForSymbols(
+            @RequestParam("code") String assetCodes,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+        startDate = startDate == null ? LocalDate.now().minusMonths(1) : startDate;
+        endDate = endDate == null ? LocalDate.now() : endDate;
+        List<String> codes = Arrays.asList(assetCodes.split(","));
+        return service.getQuotationInPeriod(codes, startDate, endDate);
     }
 
     @PostMapping("/quotations/{year}")

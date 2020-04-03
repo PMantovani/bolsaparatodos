@@ -22,6 +22,6 @@ public class MarketData {
     float minValue;
     float maxValue;
     float closeValue;
-    float split_factor;
-    float dividend_per_share;
+    float splitFactor;
+    float dividendPerShare;
 }
