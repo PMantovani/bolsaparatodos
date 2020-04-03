@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -52,7 +51,7 @@ public class MarketDataService {
                 mdInDate.setMarketData(list);
             }
             list.add(new MarketDataModel(md.getId().getAsset().getCode(), md.getOpenValue(), md.getMinValue(),
-                    md.getMaxValue(), md.getCloseValue(), md.getSplitFactor(), md.getDividendPerShare()));
+                    md.getMaxValue(), md.getCloseValue(), md.getSplitFactor(), md.getDividendPerShare(), md.getVolume()));
         }
         return result;
     }

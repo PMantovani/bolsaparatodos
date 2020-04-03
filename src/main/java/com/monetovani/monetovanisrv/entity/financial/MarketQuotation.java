@@ -23,5 +23,6 @@ public class MarketQuotation {
     float minValue;
     float maxValue;
     float closeValue;
+    float volume;
 
 }

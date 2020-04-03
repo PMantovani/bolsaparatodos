@@ -92,7 +92,7 @@ public class YahooFinanceQuotationService implements QuotationService, ExternalD
                 LocalDate quotationDate = LocalDate.parse(fields[dateFieldPosition], DateTimeFormatter.ISO_DATE);
                 float closeValue = Float.parseFloat(fields[closeFieldPosition]);
 
-                MarketQuotation mq = new MarketQuotation(new MarketDataKeys(asset, quotationDate), 0, 0, 0, closeValue);
+                MarketQuotation mq = new MarketQuotation(new MarketDataKeys(asset, quotationDate), 0, 0, 0, closeValue, 0);
                 result.add(mq);
             }
         }

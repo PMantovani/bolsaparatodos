@@ -119,11 +119,13 @@ public class B3QuotationService {
             String assetCode = lines[i].substring(12, 24).trim();
             if (assetMap.containsKey(assetCode)) {
                 LocalDate date = LocalDate.parse(lines[i].substring(2, 10), DateTimeFormatter.BASIC_ISO_DATE);
-                float openValue = Float.parseFloat(lines[i].substring(55, 69)) / 100;
+                float openValue = Float.parseFloat(lines[i].substring(56, 69)) / 100;
                 float maxValue = Float.parseFloat(lines[i].substring(69, 82)) / 100;
                 float minValue = Float.parseFloat(lines[i].substring(82, 95)) / 100;
                 float closeValue = Float.parseFloat(lines[i].substring(108, 121)) / 100;
-                MarketQuotation mktData = new MarketQuotation(new MarketDataKeys(assetMap.get(assetCode), date), openValue, minValue, maxValue, closeValue);
+                float volume = Float.parseFloat(lines[i].substring(170, 188)) / 100;
+                MarketQuotation mktData = new MarketQuotation(
+                        new MarketDataKeys(assetMap.get(assetCode), date), openValue, minValue, maxValue, closeValue, volume);
                 foundMarketData.add(mktData);
             }
         }

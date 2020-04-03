@@ -24,4 +24,5 @@ public class MarketData {
     float closeValue;
     float splitFactor;
     float dividendPerShare;
+    float volume;
 }
