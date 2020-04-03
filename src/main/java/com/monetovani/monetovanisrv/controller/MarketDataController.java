@@ -18,15 +18,15 @@ import java.util.List;
 @RequestMapping("/marketdata")
 public class MarketDataController {
 
-    @Autowired MarketDataService service;
+    @Autowired private MarketDataService service;
     @Autowired private B3QuotationService b3QuotationService;
     @Autowired private YahooFinanceQuotationService yahooFinanceService;
 
     @GetMapping("/{code}")
     public List<MarketDataModelWithDate> getMarketData(
             @PathVariable("code") String assetCode,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         startDate = startDate == null ? LocalDate.now().minusMonths(1) : startDate;
         endDate = endDate == null ? LocalDate.now() : endDate;
         return service.getQuotationInPeriod(assetCode, startDate, endDate);
@@ -35,8 +35,8 @@ public class MarketDataController {
     @GetMapping
     public List<MarketDataByDate> getMarketDataForSymbols(
             @RequestParam("code") String assetCodes,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         startDate = startDate == null ? LocalDate.now().minusMonths(1) : startDate;
         endDate = endDate == null ? LocalDate.now() : endDate;
         List<String> codes = Arrays.asList(assetCodes.split(","));
