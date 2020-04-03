@@ -1,4 +1,4 @@
-package com.monetovani.monetovanisrv.service.ExternalQuotationService;
+package com.monetovani.monetovanisrv.service.externalMarketDataService;
 
 import com.monetovani.monetovanisrv.entity.financial.Asset;
 import com.monetovani.monetovanisrv.entity.financial.MarketQuotation;
@@ -10,14 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;

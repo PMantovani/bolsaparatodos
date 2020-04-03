@@ -3,7 +3,7 @@ package com.monetovani.monetovanisrv.controller;
 import com.monetovani.monetovanisrv.entity.financial.MarketData;
 import com.monetovani.monetovanisrv.model.MarketDataCreationResponse;
 import com.monetovani.monetovanisrv.service.MarketDataService;
-import com.monetovani.monetovanisrv.service.ExternalQuotationService.B3QuotationService;
+import com.monetovani.monetovanisrv.service.externalMarketDataService.B3QuotationService;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.YahooFinanceQuotationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
