@@ -1,8 +1,8 @@
 package com.monetovani.monetovanisrv.controller;
 
-import com.monetovani.monetovanisrv.entity.financial.MarketData;
 import com.monetovani.monetovanisrv.model.MarketDataByDate;
 import com.monetovani.monetovanisrv.model.MarketDataCreationResponse;
+import com.monetovani.monetovanisrv.model.MarketDataModelWithDate;
 import com.monetovani.monetovanisrv.service.MarketDataService;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.B3QuotationService;
 import com.monetovani.monetovanisrv.service.externalMarketDataService.YahooFinanceQuotationService;
@@ -11,10 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/marketdata")
@@ -25,7 +23,7 @@ public class MarketDataController {
     @Autowired private YahooFinanceQuotationService yahooFinanceService;
 
     @GetMapping("/{code}")
-    public List<MarketData> getMarketData(
+    public List<MarketDataModelWithDate> getMarketData(
             @PathVariable("code") String assetCode,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate) {

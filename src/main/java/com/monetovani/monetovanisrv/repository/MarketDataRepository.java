@@ -8,7 +8,8 @@ import java.util.List;
 
 public interface MarketDataRepository extends JpaRepository<MarketData, Long> {
 
-    List<MarketData> findByIdAssetCodeAndIdEventDateBetween(String assetCode, LocalDate startDate, LocalDate endDate);
+    List<MarketData> findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(
+            String assetCode, LocalDate startDate, LocalDate endDate);
 
     List<MarketData> findByIdAssetCodeInAndIdEventDateBetweenOrderByIdEventDateDesc(
             List<String> assetCodes, LocalDate startDate, LocalDate endDate);
