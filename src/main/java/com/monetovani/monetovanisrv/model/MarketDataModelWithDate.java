@@ -15,6 +15,7 @@ public class MarketDataModelWithDate {
     float minValue;
     float maxValue;
     float closeValue;
+    float adjustedCloseValue;
     float splitFactor;
     float dividendPerShare;
     float volume;
