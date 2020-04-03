@@ -3,9 +3,9 @@ import { ApiClientService } from 'src/app/services/api-client.service';
 import { Chart, ChartTooltipItem, ChartOptions } from 'chart.js';
 import { DatePipe, DOCUMENT } from '@angular/common';
 import { BrlCurrencyPipe } from 'src/app/pipes/brl-currency.pipe';
-import { Balance } from 'src/app/model/Balance';
 import * as moment from 'moment';
 import { HttpParams } from '@angular/common/http';
+import { MarketData } from 'src/app/model/MarketData';
 
 @Component({
   selector: 'app-dashboard',
@@ -77,7 +77,7 @@ export class DashboardComponent implements OnInit {
         labels: [],
         datasets: [{
           data: [],
-          label: 'Saldo',
+          label: 'Preço',
           pointRadius: 0,
           yAxisID: 'y-axis',
           xAxisID: 'x-axis',
@@ -91,12 +91,12 @@ export class DashboardComponent implements OnInit {
     });
 
     const queryParams = new HttpParams()
-      .set('startDate', '2020-01-03T00:00:00')
-      .set('endDat', '2020-03-24T18:00:00');
+      .set('startDate', '2010-01-01')
+      .set('endDate', '2020-04-03');
 
-    this.api.get('balance', queryParams).subscribe((balances: Balance[]) => {
-      this.chart.data.datasets[0].data = balances.map(i => i.balance);
-      this.chart.data.labels = balances.map(i => i.date.toString());
+    this.api.get('marketdata/SAPR4', queryParams).subscribe((marketData: MarketData[]) => {
+      this.chart.data.datasets[0].data = marketData.map(i => i.adjustedCloseValue);
+      this.chart.data.labels = marketData.map(i => i.date.toString());
       this.chart.update();
     });
   }
@@ -108,6 +108,6 @@ export class DashboardComponent implements OnInit {
   }
 
   formatTooltipLabel(item: ChartTooltipItem): string {
-    return 'Patrimônio: ' + this.currencyPipe.transform(item.value);
+    return 'Preço de fechamento ajustado: ' + this.currencyPipe.transform(item.value);
   }
 }
