@@ -1,23 +1,27 @@
 package com.monetovani.monetovanisrv.entity.financial;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.monetovani.monetovanisrv.entity.financial.keys.MarketDataKeys;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Immutable;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Data
 @Entity
+@Immutable
+@NoArgsConstructor
+@AllArgsConstructor
 public class MarketData {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @EmbeddedId
+    MarketDataKeys id;
 
-    @ManyToOne
-    private Asset asset;
-
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    private LocalDateTime quotationDatetime;
-    private float closeValue;
+    float openValue;
+    float minValue;
+    float maxValue;
+    float closeValue;
+    float split_factor;
+    float dividend_per_share;
 }

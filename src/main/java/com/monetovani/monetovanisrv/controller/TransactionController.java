@@ -1,15 +1,16 @@
 package com.monetovani.monetovanisrv.controller;
 
 import com.monetovani.monetovanisrv.controller.exceptionhandler.TransactionNotFound;
-import com.monetovani.monetovanisrv.entity.financial.Transaction;
-import com.monetovani.monetovanisrv.model.Balance;
-import com.monetovani.monetovanisrv.model.BalanceInterface;
+import com.monetovani.monetovanisrv.entity.financial.TransactionHeader;
+import com.monetovani.monetovanisrv.model.TransactionModel;
 import com.monetovani.monetovanisrv.repository.TransactionRepository;
-import com.monetovani.monetovanisrv.utils.NumberConverter;
+import com.monetovani.monetovanisrv.security.MyUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.util.ArrayList;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class TransactionController {
@@ -18,24 +19,15 @@ public class TransactionController {
     private TransactionRepository repository;
 
     @GetMapping("/transactions")
-    public List<Transaction> getTransactions() {
-        return repository.findAll();
+    public List<TransactionModel> getTransactions(@AuthenticationPrincipal MyUserDetails user) {
+        long id = user.getId();
+        List<TransactionHeader> transactions = repository.findByUserId(id);
+        return transactions.stream().map(TransactionModel::new).collect(Collectors.toList());
     }
 
     @GetMapping("/transactions/{id}")
-    public Transaction getTransaction(@PathVariable("id") Long id) {
-        return repository.findById(id).orElseThrow(() -> new TransactionNotFound(id));
-    }
-
-    @GetMapping("/balance/{id}")
-    public List<Balance> balance(@PathVariable("id") Long id) {
-        List<Balance> finalBalance = new ArrayList<>();
-        List<BalanceInterface> dailyBalances = repository.findDailyBalance();
-        float summedBalance = 0;
-        for (BalanceInterface dailyBalance : dailyBalances) {
-            summedBalance += dailyBalance.getBalance();
-            finalBalance.add(new Balance(NumberConverter.fixDecimals(summedBalance), dailyBalance.getDate()));
-        }
-        return finalBalance;
+    public TransactionHeader getTransaction(@AuthenticationPrincipal MyUserDetails user, @PathVariable("id") Long id) {
+        long userId = user.getId();
+        return repository.findByIdAndUserId(id, userId).orElseThrow(() -> new TransactionNotFound(id));
     }
 }
