@@ -1,13 +1,14 @@
 package com.monetovani.monetovanisrv.service;
 
+import com.monetovani.monetovanisrv.entity.financial.Asset;
 import com.monetovani.monetovanisrv.entity.financial.MarketData;
+import com.monetovani.monetovanisrv.entity.financial.MarketDividend;
+import com.monetovani.monetovanisrv.entity.financial.MarketSplit;
 import com.monetovani.monetovanisrv.model.MarketDataByDate;
 import com.monetovani.monetovanisrv.model.MarketDataModel;
 import com.monetovani.monetovanisrv.model.MarketDataModelWithDate;
 import com.monetovani.monetovanisrv.repository.MarketDataRepository;
-import com.monetovani.monetovanisrv.service.externalMarketDataService.AlphaVantageQuotationService;
-import com.monetovani.monetovanisrv.service.externalMarketDataService.B3QuotationService;
-import com.monetovani.monetovanisrv.service.externalMarketDataService.YahooFinanceQuotationService;
+import com.monetovani.monetovanisrv.repository.MarketSplitRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -24,17 +25,16 @@ public class MarketDataService {
     private MarketDataRepository marketDataRepository;
 
     @Autowired
-    private Environment env;
+    private MarketSplitRepository marketSplitRepository;
 
-    @Autowired private AlphaVantageQuotationService alphaVantageQuotationService;
-    @Autowired private YahooFinanceQuotationService yahooFinanceQuotationService;
-    @Autowired private B3QuotationService b3QuotationService;
+    @Autowired
+    private Environment env;
 
     public List<MarketDataByDate> getQuotationInPeriod(List<String> assetCodes, LocalDate startDate, LocalDate endDate) {
         List<MarketData> marketData = this.marketDataRepository
                 .findByIdAssetCodeInAndIdEventDateBetweenOrderByIdEventDateDesc(assetCodes, startDate, endDate);
 
-        List<MarketDataModelWithDate> marketDataAdjusted = this.adjustClosingValue(marketData);
+        List<MarketDataModelWithDate> marketDataAdjusted = this.adjustClosingValue(marketData, endDate);
 
         List<MarketDataByDate> result = new ArrayList<>();
         MarketDataByDate mdInDate = null;
@@ -63,12 +63,18 @@ public class MarketDataService {
         List<MarketData> marketData = this.marketDataRepository
                 .findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(assetCode, startDate, endDate);
 
-        return this.adjustClosingValue(marketData);
+        return this.adjustClosingValue(marketData, endDate);
     }
 
-    private List<MarketDataModelWithDate> adjustClosingValue(List<MarketData> marketDataList) {
+    private List<MarketDataModelWithDate> adjustClosingValue(List<MarketData> marketDataList, LocalDate endDate) {
         float accumulatedSplitFactor = 1;
         float accumulatedDividendPerCurrencyUnit = 0;
+
+        if (!marketDataList.isEmpty()) {
+            Asset asset = marketDataList.get(0).getId().getAsset();
+            accumulatedSplitFactor = this.getAccumulatedSplitFactorFromEndDateUntilToday(asset, endDate);
+            accumulatedDividendPerCurrencyUnit = this.getAccumulatedDividendsFromEndDateUntilToday(asset, endDate);
+        }
         List<MarketDataModelWithDate> mdModel = new ArrayList<>();
         for (MarketData md: marketDataList) {
             MarketDataModelWithDate element = new MarketDataModelWithDate();
@@ -83,5 +89,28 @@ public class MarketDataService {
             mdModel.add(element);
         }
         return mdModel;
+    }
+
+    private float getAccumulatedSplitFactorFromEndDateUntilToday(Asset asset, LocalDate endDate) {
+        LocalDate afterEndDate = endDate.plusDays(1);
+        List<MarketSplit> splits = this.marketSplitRepository.findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(
+                asset.getCode(), afterEndDate, LocalDate.now());
+        float accumulatedSplit = 1;
+        for (MarketSplit split : splits) {
+            accumulatedSplit *= split.getSplitFactor();
+        }
+        return accumulatedSplit;
+    }
+
+
+    private float getAccumulatedDividendsFromEndDateUntilToday(Asset asset, LocalDate endDate) {
+        LocalDate afterEndDate = endDate.plusDays(1);
+        List<MarketData> data = this.marketDataRepository.findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(
+                asset.getCode(), afterEndDate, LocalDate.now());
+        float accumulatedDividends = 0;
+        for (MarketData marketData: data) {
+            accumulatedDividends += marketData.getDividendPerShare() / marketData.getOpenValue();
+        }
+        return accumulatedDividends;
     }
 }
