@@ -1,16 +1,23 @@
 <div>
-  <mat-form-field>
-    <mat-label>Data de ínicio</mat-label>
-    <input matInput [matDatepicker]="startDatePicker" [formControl]="startDateFormControl" (dateChange)="dateChanged($event)">
-    <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
-    <mat-datepicker #startDatePicker></mat-datepicker>
-  </mat-form-field>
-  <mat-form-field>
-    <mat-label>Data de término</mat-label>
-    <input matInput [matDatepicker]="endDatePicker" [formControl]="endDateFormControl" (dateChange)="dateChanged($event)">
-    <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-    <mat-datepicker #endDatePicker></mat-datepicker>
-  </mat-form-field>
+  <form [formGroup]="formGroup" (ngSubmit)="onFormSubmit()">
+    <mat-form-field>
+      <mat-label>Ativo</mat-label>
+      <input matInput formControlName="assetFormControl" placeholder="Ex. PETR4">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Data de ínicio</mat-label>
+      <input matInput [matDatepicker]="startDatePicker" formControlName="startDateFormControl" (dateChange)="dateChanged($event)">
+      <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #startDatePicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Data de término</mat-label>
+      <input matInput [matDatepicker]="endDatePicker" formControlName="endDateFormControl" (dateChange)="dateChanged($event)">
+      <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #endDatePicker></mat-datepicker>
+    </mat-form-field>
+    <button type="submit" style="visibility:hidden">hidden submit</button>
+  </form>
   <div style="display: block; height: 400px; width: 700px;">
     <canvas id="balanceChart" width="700" height="400"></canvas>
   </div>

@@ -6,7 +6,7 @@ import { BrlCurrencyPipe } from 'src/app/pipes/brl-currency.pipe';
 import * as moment from 'moment';
 import { HttpParams } from '@angular/common/http';
 import { MarketData } from 'src/app/model/MarketData';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 @Component({
@@ -59,8 +59,11 @@ export class DashboardComponent implements OnInit {
     }
   };
   public chart: Chart;
-  private startDateFormControl: FormControl;
-  private endDateFormControl: FormControl;
+  public formGroup = new FormGroup({
+    startDateFormControl: new FormControl(),
+    endDateFormControl: new FormControl(),
+    assetFormControl: new FormControl()
+  });
 
   constructor(
     private api: ApiClientService,
@@ -69,8 +72,12 @@ export class DashboardComponent implements OnInit {
     @Inject(DOCUMENT) private document: Document) {
       const previousMonth = new Date();
       previousMonth.setMonth(previousMonth.getMonth() - 1);
-      this.startDateFormControl = new FormControl(previousMonth);
-      this.endDateFormControl = new FormControl(new Date());
+
+      this.formGroup.setValue({
+        startDateFormControl: previousMonth,
+        endDateFormControl: new Date(),
+        assetFormControl: 'PETR4'
+      });
   }
 
   ngOnInit() {
@@ -103,10 +110,10 @@ export class DashboardComponent implements OnInit {
 
   retrieveMarketData() {
     const queryParams = new HttpParams()
-      .set('startDate', this.startDateFormControl.value.toISOString().substring(0, 10))
-      .set('endDate', this.endDateFormControl.value.toISOString().substring(0, 10));
+      .set('startDate', this.formGroup.value.startDateFormControl.toISOString().substring(0, 10))
+      .set('endDate', this.formGroup.value.endDateFormControl.toISOString().substring(0, 10));
 
-    this.api.get('marketdata/SAPR4', queryParams).subscribe((marketData: MarketData[]) => {
+    this.api.get('marketdata/' + this.formGroup.value.assetFormControl, queryParams).subscribe((marketData: MarketData[]) => {
       this.chart.data.datasets[0].data = marketData.map(i => i.adjustedCloseValue);
       this.chart.data.labels = marketData.map(i => i.date.toString());
       this.chart.update();
@@ -124,6 +131,10 @@ export class DashboardComponent implements OnInit {
   }
 
   dateChanged(event: MatDatepickerInputEvent<Date>) {
+    this.retrieveMarketData();
+  }
+
+  onFormSubmit() {
     this.retrieveMarketData();
   }
 }
