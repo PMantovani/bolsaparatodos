@@ -2,6 +2,7 @@ package com.monetovani.monetovanisrv.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 @Data
 @AllArgsConstructor
@@ -16,4 +17,8 @@ public class MarketDataModel {
     float splitFactor;
     float dividendPerShare;
     float volume;
+
+    public MarketDataModel(MarketDataModelWithDate marketData) {
+        BeanUtils.copyProperties(marketData, this);
+    }
 }

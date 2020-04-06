@@ -11,6 +11,6 @@ public interface MarketDataRepository extends JpaRepository<MarketData, Long> {
     List<MarketData> findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(
             String assetCode, LocalDate startDate, LocalDate endDate);
 
-    List<MarketData> findByIdAssetCodeInAndIdEventDateBetweenOrderByIdEventDateDesc(
+    List<MarketData> findByIdAssetCodeInAndIdEventDateBetweenOrderByIdAssetCodeAscIdEventDateDesc(
             List<String> assetCodes, LocalDate startDate, LocalDate endDate);
 }

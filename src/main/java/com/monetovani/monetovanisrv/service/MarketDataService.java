@@ -2,7 +2,6 @@ package com.monetovani.monetovanisrv.service;
 
 import com.monetovani.monetovanisrv.entity.financial.Asset;
 import com.monetovani.monetovanisrv.entity.financial.MarketData;
-import com.monetovani.monetovanisrv.entity.financial.MarketDividend;
 import com.monetovani.monetovanisrv.entity.financial.MarketSplit;
 import com.monetovani.monetovanisrv.model.MarketDataByDate;
 import com.monetovani.monetovanisrv.model.MarketDataModel;
@@ -15,8 +14,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 public class MarketDataService {
@@ -32,31 +33,33 @@ public class MarketDataService {
 
     public List<MarketDataByDate> getQuotationInPeriod(List<String> assetCodes, LocalDate startDate, LocalDate endDate) {
         List<MarketData> marketData = this.marketDataRepository
-                .findByIdAssetCodeInAndIdEventDateBetweenOrderByIdEventDateDesc(assetCodes, startDate, endDate);
+                .findByIdAssetCodeInAndIdEventDateBetweenOrderByIdAssetCodeAscIdEventDateDesc(assetCodes, startDate, endDate);
 
-        List<MarketDataModelWithDate> marketDataAdjusted = this.adjustClosingValue(marketData, endDate);
-
-        List<MarketDataByDate> result = new ArrayList<>();
-        MarketDataByDate mdInDate = null;
-        for (MarketDataModelWithDate md: marketDataAdjusted) {
-            if (mdInDate == null || !mdInDate.getDate().equals(md.getDate())) {
-                if (mdInDate != null) {
-                    result.add(mdInDate);
-                }
-                mdInDate = new MarketDataByDate();
-                mdInDate.setDate(md.getDate());
-            }
-
-            List<MarketDataModel> list = mdInDate.getMarketData();
-            if (list == null) {
-                list = new ArrayList<>();
-                mdInDate.setMarketData(list);
-            }
-            list.add(new MarketDataModel(md.getCode(), md.getOpenValue(), md.getMinValue(),
-                    md.getMaxValue(), md.getCloseValue(), md.getAdjustedCloseValue(),
-                    md.getSplitFactor(), md.getDividendPerShare(), md.getVolume()));
-        }
-        return result;
+        return marketData
+                .stream()
+                .collect(groupingBy(i -> i.getId().getAsset())) // Group market data by different assets
+                .values()
+                .stream()
+                .map(i -> this.adjustClosingValue(i, endDate)) // Adjust asset market data values
+                .flatMap(List::stream) // Add all results by different assets together
+                .collect(groupingBy(MarketDataModelWithDate::getDate)) // Group them by the same date
+                .entrySet()
+                .stream()
+                .map(i -> {
+                    // Convert MarketDataModelWithDate set to MarketDataModel list
+                    MarketDataByDate item = new MarketDataByDate();
+                    item.setDate(i.getKey());
+                    item.setMarketData(
+                            i.getValue()
+                                    .stream()
+                                    .map(MarketDataModel::new)
+                                    .sorted(Comparator.comparing(MarketDataModel::getCode)) // Sort by asset code
+                                    .collect(Collectors.toList())
+                    );
+                    return item;
+                })
+                .sorted(Comparator.comparing(MarketDataByDate::getDate).reversed()) // Sort by descending date order
+                .collect(Collectors.toList());
     }
 
     public List<MarketDataModelWithDate> getQuotationInPeriod(String assetCode, LocalDate startDate, LocalDate endDate) {
