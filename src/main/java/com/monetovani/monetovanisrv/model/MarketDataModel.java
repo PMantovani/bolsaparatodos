@@ -17,6 +17,7 @@ public class MarketDataModel {
     float splitFactor;
     float dividendPerShare;
     float volume;
+    float percentageDifference;
 
     public MarketDataModel(MarketDataModelWithDate marketData) {
         BeanUtils.copyProperties(marketData, this);

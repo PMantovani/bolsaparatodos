@@ -1,7 +1,9 @@
 package com.monetovani.monetovanisrv.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.monetovani.monetovanisrv.entity.financial.MarketData;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDate;
 
@@ -19,4 +21,9 @@ public class MarketDataModelWithDate {
     float splitFactor;
     float dividendPerShare;
     float volume;
+    float percentageDifference;
+
+    public MarketDataModelWithDate(MarketData marketData) {
+        BeanUtils.copyProperties(marketData, this);
+    }
 }

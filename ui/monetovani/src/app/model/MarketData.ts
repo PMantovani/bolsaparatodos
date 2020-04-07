@@ -9,4 +9,5 @@ export class MarketData {
   splitFactor: number;
   dividendPerShare: number;
   volume: number;
+  percentageDifference: number;
 }

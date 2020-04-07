@@ -9,6 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 
 @NgModule({
@@ -21,6 +22,7 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
     HomeRoutingModule,
     MatSidenavModule,
     MatDatepickerModule,
+    MatCheckboxModule,
     MatInputModule,
     FormsModule,
     ReactiveFormsModule,

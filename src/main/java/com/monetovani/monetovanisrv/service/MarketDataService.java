@@ -8,7 +8,6 @@ import com.monetovani.monetovanisrv.model.MarketDataModel;
 import com.monetovani.monetovanisrv.model.MarketDataModelWithDate;
 import com.monetovani.monetovanisrv.repository.MarketDataRepository;
 import com.monetovani.monetovanisrv.repository.MarketSplitRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -40,7 +39,7 @@ public class MarketDataService {
                 .collect(groupingBy(i -> i.getId().getAsset())) // Group market data by different assets
                 .values()
                 .stream()
-                .map(i -> this.adjustClosingValue(i, endDate)) // Adjust asset market data values
+                .map(i -> this.performConversions(i, endDate)) // Adjust asset market data values
                 .flatMap(List::stream) // Add all results by different assets together
                 .collect(groupingBy(MarketDataModelWithDate::getDate)) // Group them by the same date
                 .entrySet()
@@ -66,7 +65,12 @@ public class MarketDataService {
         List<MarketData> marketData = this.marketDataRepository
                 .findByIdAssetCodeAndIdEventDateBetweenOrderByIdEventDateDesc(assetCode, startDate, endDate);
 
-        return this.adjustClosingValue(marketData, endDate);
+        return this.performConversions(marketData, endDate);
+    }
+
+    private List<MarketDataModelWithDate> performConversions(List<MarketData> marketData, LocalDate endDate) {
+        List<MarketDataModelWithDate> result = this.adjustClosingValue(marketData, endDate);
+        return this.calculatePercentageDifference(result);
     }
 
     private List<MarketDataModelWithDate> adjustClosingValue(List<MarketData> marketDataList, LocalDate endDate) {
@@ -80,8 +84,7 @@ public class MarketDataService {
         }
         List<MarketDataModelWithDate> mdModel = new ArrayList<>();
         for (MarketData md: marketDataList) {
-            MarketDataModelWithDate element = new MarketDataModelWithDate();
-            BeanUtils.copyProperties(md, element);
+            MarketDataModelWithDate element = new MarketDataModelWithDate(md);
             element.setCode(md.getId().getAsset().getCode());
             element.setDate(md.getId().getEventDate());
             element.setAdjustedCloseValue((element.getCloseValue() * accumulatedSplitFactor * (1 - accumulatedDividendPerCurrencyUnit)));
@@ -92,6 +95,24 @@ public class MarketDataService {
             mdModel.add(element);
         }
         return mdModel;
+    }
+
+    /**
+     * Return list with filled percentageDifference field. That's the percentage difference of the closing value of the date
+     * compared to the initial date closing value.
+     * @param marketData initial marketData. Needs to be sorted in reversed order by date. (Most recent date first)
+     * @return list with filled percentageDifference.
+     */
+    private List<MarketDataModelWithDate> calculatePercentageDifference(List<MarketDataModelWithDate> marketData) {
+        if (marketData.isEmpty()) {
+            return marketData;
+        }
+
+        float initialValue = marketData.get(marketData.size() - 1).getAdjustedCloseValue();
+        for (MarketDataModelWithDate md: marketData) {
+            md.setPercentageDifference(100 * (md.getAdjustedCloseValue() - initialValue) / initialValue);
+        }
+        return marketData;
     }
 
     private float getAccumulatedSplitFactorFromEndDateUntilToday(Asset asset, LocalDate endDate) {

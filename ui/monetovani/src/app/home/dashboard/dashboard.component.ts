@@ -8,6 +8,7 @@ import { HttpParams } from '@angular/common/http';
 import { MarketData } from 'src/app/model/MarketData';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,7 +29,8 @@ export class DashboardComponent implements OnInit {
         position: 'left',
         ticks: {
           min: 0,
-          fontSize: 14
+          fontSize: 14,
+          callback: (item) => this.formatYAxesTick(item)
         },
         gridLines: {
           borderDash: [5, 5],
@@ -59,10 +61,12 @@ export class DashboardComponent implements OnInit {
     }
   };
   public chart: Chart;
+  public marketDataResults: MarketData[];
   public formGroup = new FormGroup({
     startDateFormControl: new FormControl(),
     endDateFormControl: new FormControl(),
-    assetFormControl: new FormControl()
+    assetFormControl: new FormControl(),
+    percentualDiffFormControl: new FormControl()
   });
 
   constructor(
@@ -76,7 +80,8 @@ export class DashboardComponent implements OnInit {
       this.formGroup.setValue({
         startDateFormControl: previousMonth,
         endDateFormControl: new Date(),
-        assetFormControl: 'PETR4'
+        assetFormControl: 'PETR4',
+        percentualDiffFormControl: false
       });
   }
 
@@ -114,7 +119,8 @@ export class DashboardComponent implements OnInit {
       .set('endDate', this.formGroup.value.endDateFormControl.toISOString().substring(0, 10));
 
     this.api.get('marketdata/' + this.formGroup.value.assetFormControl, queryParams).subscribe((marketData: MarketData[]) => {
-      this.chart.data.datasets[0].data = marketData.map(i => i.adjustedCloseValue);
+      this.marketDataResults = marketData;
+      this.fillChartDataWithCorrectValue();
       this.chart.data.labels = marketData.map(i => i.date.toString());
       this.chart.update();
     });
@@ -127,7 +133,19 @@ export class DashboardComponent implements OnInit {
   }
 
   formatTooltipLabel(item: ChartTooltipItem): string {
-    return 'Preço de fechamento ajustado: ' + this.currencyPipe.transform(item.value);
+    if (this.formGroup.value.percentualDiffFormControl) {
+      return 'Diferença Percentual: ' + Number(item.value).toFixed(2) + '%';
+    } else {
+      return 'Preço de fechamento ajustado: ' + this.currencyPipe.transform(item.value);
+    }
+  }
+
+  formatYAxesTick(item): string {
+    if (this.formGroup.value.percentualDiffFormControl) {
+      return item + '%';
+    } else {
+      return item;
+    }
   }
 
   dateChanged(event: MatDatepickerInputEvent<Date>) {
@@ -136,5 +154,20 @@ export class DashboardComponent implements OnInit {
 
   onFormSubmit() {
     this.retrieveMarketData();
+  }
+
+  onPercentualDiffCheckboxChange(event: MatCheckboxChange) {
+    this.fillChartDataWithCorrectValue();
+    this.chart.update();
+  }
+
+  fillChartDataWithCorrectValue() {
+    if (this.formGroup.value.percentualDiffFormControl) {
+      this.chart.data.datasets[0].data = this.marketDataResults.map(i => i.percentageDifference);
+      this.chart.options.scales.yAxes[0].ticks.min = undefined;
+    } else {
+      this.chart.data.datasets[0].data = this.marketDataResults.map(i => i.adjustedCloseValue);
+      this.chart.options.scales.yAxes[0].ticks.min = 0;
+    }
   }
 }
