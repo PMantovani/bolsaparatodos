@@ -46,6 +46,10 @@ public class AssetService {
                         .queryParam("date", date.toString())
                         .build()).retrieve().bodyToMono(String.class).block();
 
+        if (tokenResponse == null) {
+            return;
+        }
+
         try {
             JsonNode json = new ObjectMapper().readTree(tokenResponse);
             String token = json.path("token").asText();
@@ -63,13 +67,27 @@ public class AssetService {
                     .acceptCharset(StandardCharsets.UTF_8)
                     .retrieve().bodyToMono(byte[].class).block();
 
+            if (assetApiResponse == null) {
+                return;
+            }
+
             String assetApiResponseString = new String(assetApiResponse, StandardCharsets.ISO_8859_1);
             String[] assetLines = assetApiResponseString.split("\\r?\\n");
             List<Asset> foundAssets = new ArrayList<>();
             for (int i=1; i<assetLines.length; i++) {
                 String[] assetFields = assetLines[i].split(";");
                 if (assetFields[5].equals("EQUITY-CASH")) {
-                    foundAssets.add(new Asset(assetFields[1], Asset.AssetType.SHARE, assetFields[47]));
+                    if (assetFields[6].equals("SHARES")) {
+                        foundAssets.add(new Asset(assetFields[1], Asset.AssetType.SHARE, assetFields[47]));
+                    } else if (assetFields[6].equals("FUNDS")) {
+                        foundAssets.add(new Asset(assetFields[1], Asset.AssetType.REAL_STATE_FUND, assetFields[47]));
+                    } else if (assetFields[6].equals("BDR")) {
+                        foundAssets.add(new Asset(assetFields[1], Asset.AssetType.BDR, assetFields[47]));
+                    } else if (assetFields[6].equals("INDEX")) {
+                        foundAssets.add(new Asset(assetFields[1], Asset.AssetType.INDEX, assetFields[47]));
+                    } else if (assetFields[6].contains("ETF")) {
+                        foundAssets.add(new Asset(assetFields[1], Asset.AssetType.ETF, assetFields[47]));
+                    }
                 }
             }
 

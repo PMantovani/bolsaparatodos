@@ -20,11 +20,11 @@ public class Asset {
     private AssetType type;
 
     public enum AssetType {
-        FIXED_INCOME,
-        INVESTMENT_FUND,
         REAL_STATE_FUND,
         SHARE,
-        ETF
+        ETF,
+        BDR,
+        INDEX
     }
 
     private String name;
