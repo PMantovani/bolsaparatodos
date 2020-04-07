@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,14 @@ public class AssetService {
         return assetRepository.findAll();
     }
 
-    public void getAssetsInDate(LocalDate date) {
+    public void syncAssets(LocalDate date, boolean purgeExistent) {
+        if (purgeExistent) {
+            this.assetRepository.deleteAll();
+        }
+        this.syncAssetsFromB3(date);
+    }
+
+    private void syncAssetsFromB3(LocalDate date) {
 
         String tokenResponse = WebClient.builder()
                 .baseUrl(env.getProperty("asset-api-token-url"))
@@ -45,14 +53,18 @@ public class AssetService {
             ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
                     .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024 * 50)).build();
 
-            String assetApiResponse = WebClient.builder()
+            byte[] assetApiResponse = WebClient.builder()
                     .baseUrl(env.getProperty("asset-api-url"))
                     .exchangeStrategies(exchangeStrategies)
-                    .build().get().uri(uriBuilder -> uriBuilder
+                    .build()
+                    .get().uri(uriBuilder -> uriBuilder
                             .queryParam("token", token)
-                            .build()).retrieve().bodyToMono(String.class).block();
+                            .build())
+                    .acceptCharset(StandardCharsets.UTF_8)
+                    .retrieve().bodyToMono(byte[].class).block();
 
-            String[] assetLines = assetApiResponse.split("\\r?\\n");
+            String assetApiResponseString = new String(assetApiResponse, StandardCharsets.ISO_8859_1);
+            String[] assetLines = assetApiResponseString.split("\\r?\\n");
             List<Asset> foundAssets = new ArrayList<>();
             for (int i=1; i<assetLines.length; i++) {
                 String[] assetFields = assetLines[i].split(";");
@@ -66,7 +78,5 @@ public class AssetService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-
-
     }
 }
