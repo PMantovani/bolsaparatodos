@@ -8,6 +8,7 @@ import com.bolsaparatodos.bolsaparatodos.service.externalMarketDataService.B3Quo
 import com.bolsaparatodos.bolsaparatodos.service.externalMarketDataService.YahooFinanceQuotationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ public class MarketDataController {
         return service.getQuotationInPeriod(codes, startDate, endDate);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/quotations/{year}")
     public MarketDataCreationResponse syncMarketData(@PathVariable String year,
                                                      @RequestParam(defaultValue = "false") boolean purge) {
@@ -50,6 +52,7 @@ public class MarketDataController {
         return b3QuotationService.processQuotationRequest(response, B3QuotationService.FileDateType.YEAR, year, purge);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/quotations/{year}/{month}")
     public MarketDataCreationResponse syncMarketData(
             @PathVariable String year,
@@ -60,6 +63,7 @@ public class MarketDataController {
         return b3QuotationService.processQuotationRequest(response, B3QuotationService.FileDateType.MONTH, month + year, purge);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/quotations/{year}/{month}/{date}")
     public MarketDataCreationResponse syncMarketData(
             @PathVariable String year,
@@ -72,6 +76,7 @@ public class MarketDataController {
         return b3QuotationService.processQuotationRequest(response, B3QuotationService.FileDateType.DATE, date + month + year, purge);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/splits")
     public MarketDataCreationResponse syncMarketSplitData(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -81,6 +86,7 @@ public class MarketDataController {
         return yahooFinanceService.processSplitRequest(response, startDate, endDate, false);
     }
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/dividends")
     public MarketDataCreationResponse syncMarketDividendData(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

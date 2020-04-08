@@ -18,6 +18,6 @@ public class RestUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new MyUserDetails(user);
+        return new ApplicationUserDetails(user);
     }
 }
