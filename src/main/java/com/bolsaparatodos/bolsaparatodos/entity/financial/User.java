@@ -17,4 +17,6 @@ public class User {
     private String name;
     private String passwordHash;
     private boolean isAdmin;
+    @Column(unique = true)
+    private String apiKey;
 }
